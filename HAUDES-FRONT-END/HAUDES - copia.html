@@ -1,0 +1,433 @@
+<html>
+<head>
+    <Title>HAUDES</Title>
+    <link rel="icon" href="Logo.ico" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="interfaz-correo.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
+
+    <script src="./select2-optgroup-select-master/example/vendor/jquery-2.1.0.js"></script>   
+    <script src="./select2-optgroup-select-master/example/vendor/jquery.mousewheel.js"></script>
+    <script src="./select2-optgroup-select-master/example/vendor/select2.js"></script>
+    <script src="./select2-optgroup-select-master/dist/select2.optgroupSelect.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="./select2-optgroup-select-master/example/vendor/select2.css">
+    <link rel="stylesheet" type="text/css" href="./select2-optgroup-select-master/dist/select2.optgroupSelect.css">
+
+</head>
+
+<body>
+    <br><br>
+    <button class="atras" onclick="location.href='Login.html'">Cerrar Sesion</button>
+    <center>
+        <h1>Herramienta Auxiliar de Dirección Escolar</h1>
+        </center>
+        <center>
+        <table cellpadding="5" cellspacing="16" border="5" bgcolor="lightgray" class="BordeTabla">
+            <tr>
+                <td>
+                    <form id="emailForm">
+                        <label for="lista">Tu dirección de correo electrónico</label><br />
+                        
+                        <label>
+                            
+                            <select
+                                    id="lista"
+                                    name="lista" 
+                                    multiple="multiple"
+                                    title="Seleccione una o varias direcciones de correo"
+                                    placeholder="seleccione una o varias direcciones de correo"
+                                    required
+                                    allowClear="True"
+                                    >
+                                
+                            </select>
+                            
+                            <img src="Lupa.png" width="20px" height="20px">
+                            <br>
+
+                            <button id="reset-select" type="button">Resetear</button>
+
+                            <br><br>
+                            
+                            <section id="multi-selector-uniq">
+                            <img src="clip.png" width="22px" height="22px">
+                            <input id="files" name="attachments" type="file" value="adjuntar archivo" multiple>
+                            <br>
+                            <ul id="preview"></ul>
+                            </section>
+                        </label>
+                        
+                        <br><br>
+                        
+                        <label for="message">Solicitud</label><br />
+                        <textarea
+                          id="message"
+                          name="emailBody"
+                          cols="113"
+                          rows="8"
+                          required
+                          placeholder="..."></textarea>
+                        <br>
+                      <input type="submit" value="Enviar correo/s" id="submit"/>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </center>
+</body>
+</html>
+
+
+
+<script type="module">
+    document.getElementById('emailForm').addEventListener('submit', async (event) => {
+    event.preventDefault(); // Evita que el formulario se envíe de forma predeterminada
+
+    const form = event.target;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch("http://localhost:5000/send-email", {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+      alert(result.message);
+    } catch (error) {
+      console.error('Error al enviar el correo:', error);
+      alert('Hubo un error al enviar el correo.');
+    }
+  });
+
+import { getAllEmails, getInfo } from "./js/requests.js";
+
+        // Espera a que se carguen los correos electrónicos y la información de estudiantes
+        const emails = await getAllEmails();
+        const info = await getInfo();
+
+        populateEmailOptions(emails, info[2], info[1]);
+        
+        function populateEmailOptions(emails, fullNames, classes) {
+            // Agrupar los estudiantes por clase
+            const groupedByClass = groupByClass(emails, fullNames, classes);
+
+            // Función para agrupar a los estudiantes por clase
+        function groupByClass(emails, fullNames, classes) {
+            const grouped = {};
+
+
+            emails.forEach((email, index) => {
+
+                const className = classes[index];
+                const student = {
+                    email: email,
+                    fullname: fullNames[index],
+                };
+
+                // Si la clase no existe en el objeto `grouped`, la inicializamos
+                if (!grouped[className]) {
+                    grouped[className] = [];
+                }
+
+                // Añadimos el estudiante al grupo correspondiente
+                grouped[className].push(student);
+            });
+
+            return grouped;
+        }
+
+            const opciones = [];
+            // Iterar por cada clase y agregarla como un grupo
+            for (let className in groupedByClass) {
+                const group = {
+                    text: className, // Nombre de la clase
+                    children: groupedByClass[className].map(student => ({
+                        id: student.email,  // Usar el correo como ID
+                        text: student.email, // Texto del option es el correo
+                        fullname: student.fullname, // Añadir nombre completo como propiedad
+                    }))
+                };
+                opciones.push(group);
+            }
+
+            // Inicializa Select2 con las opciones agrupadas por clase
+            $('#lista').select2({
+                placeholder: "Buscar por nombre completo...",
+                allowClear: true,
+                data: opciones,
+                width: '850px',
+                dropdownAutoWidth: true,
+                matcher: matchCustom // Usa la función personalizada `matchCustom`
+            });
+
+            $('#lista').on('select2:open', function () {
+                $('#select2-lista-results').on('click', function (event) {
+                event.stopPropagation();
+                var selectedOptionGroup = $(event.target).html().trim();
+
+                var groupChildren = [];
+                var allSelected = true;
+                for (var i = 0; i < opciones.length; i++) {
+                    if (selectedOptionGroup === opciones[i].text) {
+                    for (var j = 0; j < opciones[i].children.length; j++) {
+                        groupChildren.push(opciones[i].children[j].id);
+                    }
+                    break;
+                    }
+                }
+                var selectedOptions = $('#lista').val() || [];
+                groupChildren.forEach(function (childId) {
+                    if (!selectedOptions.includes(childId)) {
+                    allSelected = false;
+                    }
+                });
+
+                if (allSelected) {
+                    selectedOptions = selectedOptions.filter(function (option) {
+                    return !groupChildren.includes(option);
+                    });
+                } else {
+                    groupChildren.forEach(function (childId) {
+                    if (!selectedOptions.includes(childId)) {
+                        selectedOptions.push(childId);
+                    }
+                    });
+                }
+                $('#lista').val(selectedOptions).trigger('change');
+                $('#lista').select2('close');
+                });
+                });
+
+                $('#reset-select').prop('disabled', true);
+                    $('#reset-select').on('click', function () {
+                    $('#lista').val(null).trigger('change');
+                });  
+                
+                $('#lista').on('change', function () {
+                    if ($(this).val() === null || $(this).val().length === 0) {
+                        $('#reset-select').prop('disabled', true);
+                    } else {
+                        $('#reset-select').prop('disabled', false);
+                    }
+                });
+            }
+
+        // Función personalizada para coincidencias de búsqueda
+        function matchCustom(params, data) {
+            // Si no hay términos de búsqueda, devuelve el elemento completo
+            if ($.trim(params.term) === '') {
+                return data;
+            }
+
+            // Convertir el término de búsqueda a minúsculas para una búsqueda insensible a mayúsculas
+            const searchTerm = params.term.toLowerCase();
+
+            // Verificar si el grupo (data.text) coincide
+            if (data.text && data.text.toLowerCase().indexOf(searchTerm) > -1) {
+                return data;
+            }
+
+            // Verificar si alguno de los hijos coincide (si existen hijos)
+            if (data.children) {
+                const filteredChildren = data.children.filter(child => 
+                    child.fullname && child.fullname.toLowerCase().indexOf(searchTerm) > -1
+                );
+
+                // Si algún hijo coincide, devolver el grupo con los hijos filtrados
+                if (filteredChildren.length > 0) {
+                    return {
+                        ...data,
+                        children: filteredChildren
+                    };
+                }
+            }
+
+            // Si no hay coincidencias, devolver null
+            return null;
+        }
+
+
+
+
+
+let filesList = [];
+const classDragOver = "drag-over";
+const fileInputMulti = document.querySelector("#multi-selector-uniq #files");
+// DEMO Preview
+const multiSelectorUniqPreview = document.querySelector("#multi-selector-uniq #preview");
+
+/*
+ * Functions
+ */
+
+/**
+ * Returns the index of an Array of Files from its name. If there are multiple files with the same name, the last one will be returned.
+ * @param {string} name - Name file.
+ * @param {Array<File>} list - List of files.
+ * @return number
+ */
+
+function getIndexOfFileList(name, list) {
+    return list.reduce(
+        (position, file, index) => (file.name === name ? index : position),
+        -1
+    );
+}
+
+/**
+ * Returns a File in text.
+ * @param {File} file
+ * @return {Promise<string>}
+ */
+async function encodeFileToText(file) {
+    return file.text().then((text) => {
+        return text;
+    });
+}
+
+/**
+ * Returns an Array from the union of 2 Arrays of Files avoiding repetitions.
+ * @param {Array<File>} newFiles
+ * @param {Array<File>} currentListFiles
+ * @return Promise<File[]>
+ */
+async function getUniqFiles(newFiles, currentListFiles) {
+    return new Promise((resolve) => {
+        Promise.all(newFiles.map((inputFile) => encodeFileToText(inputFile))).then(
+            (inputFilesText) => {
+                // Check all the files to save
+                Promise.all(
+                    currentListFiles.map((savedFile) => encodeFileToText(savedFile))
+                ).then((savedFilesText) => {
+                    let newFileList = currentListFiles;
+                    inputFilesText.forEach((inputFileText, index) => {
+                        if (!savedFilesText.includes(inputFileText)) {
+                            newFileList = newFileList.concat(newFiles[index]);
+                        }
+                    });
+                    resolve(newFileList);
+                });
+            }
+        );
+    });
+}
+
+/**
+ * Only DEMO. Render preview.
+ * @param currentFileList
+ * @Only .EMO> param target.
+ * @
+ */
+function renderPreviews(currentFileList, target, inputFile) {
+    //
+    target.textContent = "";
+    currentFileList.forEach((file, index) => {
+        const myLi = document.createElement("li");
+        myLi.textContent = file.name;
+        myLi.setAttribute("draggable", 'true');
+        myLi.dataset.key = file.name;
+        myLi.addEventListener("drop", eventDrop);
+        myLi.addEventListener("dragover", eventDragOver);
+        const myButtonRemove = document.createElement("button");
+        myButtonRemove.textContent = "X";
+        myButtonRemove.addEventListener("click", () => {
+            filesList = deleteArrayElementByIndex(currentFileList, index);
+            inputFile.files = arrayFilesToFileList(filesList);
+            return renderPreviews(filesList, multiSelectorUniqPreview, inputFile);
+        });
+        myLi.appendChild(myButtonRemove);
+        target.appendChild(myLi);
+    });
+}
+
+/**
+ * Returns a copy of the array by removing one position by index.
+ * @param {Array<any>} list
+ * @param {number} index
+ * @return {Array<any>} list
+ */
+function deleteArrayElementByIndex(list, index) {
+    return list.filter((item, itemIndex) => itemIndex !== index);
+}
+
+/**
+ * Returns a FileLists from an array containing Files.
+ * @param {Array<File>} filesList
+ * @return {FileList}
+ */
+function arrayFilesToFileList(filesList) {
+    return filesList.reduce(function (dataTransfer, file) {
+        dataTransfer.items.add(file);
+        return dataTransfer;
+    }, new DataTransfer()).files;
+}
+
+
+/**
+ * Returns a copy of the Array by swapping 2 indices.
+ * @param {number} firstIndex
+ * @param {number} secondIndex
+ * @param {Array<any>} list
+ */
+function arraySwapIndex(firstIndex, secondIndex, list) {
+    const tempList = list.slice();
+    const tmpFirstPos = tempList[firstIndex];
+    tempList[firstIndex] = tempList[secondIndex];
+    tempList[secondIndex] = tmpFirstPos;
+    return tempList;
+}
+
+/*
+ * Events
+ */
+
+// Input file
+fileInputMulti.addEventListener("input", async () => {
+    // Get files list from <input>
+    const newFilesList = Array.from(fileInputMulti.files);
+    // Update list files
+    filesList = await getUniqFiles(newFilesList, filesList);
+    // Only DEMO. Redraw
+    renderPreviews(filesList, multiSelectorUniqPreview, fileInputMulti);
+    // Set data to input
+    fileInputMulti.files = arrayFilesToFileList(filesList);
+});
+
+// Drag and drop
+
+// Drag Start - Moving element.
+let myDragElement = undefined;
+document.addEventListener("dragstart", (event) => {
+    // Saves which element is moving.
+    myDragElement = event.target;
+});
+
+// Drag over - Element that is below the element that is moving.
+function eventDragOver(event) {
+    // Remove from all elements the class that will show that it is a drop zone.
+    event.preventDefault();
+    multiSelectorUniqPreview
+        .querySelectorAll("li")
+        .forEach((item) => item.classList.remove(classDragOver));
+
+    // On the element above it, the class is added to show that it is a drop zone.
+    event.target.classList.add(classDragOver);
+}
+
+// Drop - Element on which it is dropped.
+function eventDrop(event) {
+    // The element that is underneath the element that is moving when it is released is captured.
+    const myDropElement = event.target;
+    // The positions of the elements in the array are swapped. The dataset key is used as an index.
+    filesList = arraySwapIndex(
+        getIndexOfFileList(myDragElement.dataset.key, filesList),
+        getIndexOfFileList(myDropElement.dataset.key, filesList),
+        filesList
+    );
+    // The content of the input file is updated.
+    fileInputMulti.files = arrayFilesToFileList(filesList);
+    // Only DEMO. Changes are redrawn.
+    renderPreviews(filesList, multiSelectorUniqPreview, fileInputMulti);
+}
+</script>

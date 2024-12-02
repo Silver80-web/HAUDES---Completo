@@ -1,0 +1,148 @@
+
+body{
+    background-image: url(Fondo.png), linear-gradient(to right, black, gray, lightgray, gray, black);
+    background-repeat: no-repeat, no-repeat;
+    background-position: bottom right, center;
+    background-size: 10%, auto;
+    
+    margin-bottom: 100px;
+    margin-left: 50px;
+    margin-right: 50px;
+    margin-top: 10px;
+}
+
+h1{
+    font-style: italic;
+    font-family: serif;
+    place-content: center;
+}
+
+p.login{
+    font-family: serif;
+    font-style: italic;
+    font-size: 16;
+    font-style: bold;
+    text-align: center;
+}
+
+p.login2{
+    font-family: serif;
+    font-style: italic;
+    font-size: 32;
+    font-style: bold;
+    font-style: oblique;
+    text-align: center;
+}
+
+p.login3{
+    font-family: serif;
+    font-style: italic;
+    font-size: 20;
+    font-style: oblique;
+    text-align: center;
+    text-decoration: underline
+}
+
+p.correo{
+    font-weight: bold;
+    font-size: 20;
+    font-family: monospace;
+}
+
+label.login{
+    align-content: center;
+}
+
+table{
+    border-style: double;
+    width: 75%;
+    align-self: center;
+}
+
+form{
+    align-content: center;
+    align-self: center;
+}
+
+.envio{
+    border: none; 
+    color: black; 
+    padding: 14px 28px; 
+    cursor: pointer; 
+    border-radius: 5px;
+    background-image: linear-gradient(to right, darkgray, lightgray, darkgray);
+}
+
+.atras{
+    position: relative;
+    right: -90%;
+    border: none; 
+    color: black; 
+    padding: 10px 20px; 
+    cursor: pointer; 
+    border-radius: 20px;
+    background-image: linear-gradient(to right, lightgray, gray, lightgray);
+    border-color: linear-gradient(to right, darkgray, black, darkgray);
+    border-style: ridge;
+}
+
+.atras:hover{
+    background-image: linear-gradient(to right, darkgray, lightgray, darkgray);
+    border-color: black;
+}
+
+.envio:hover{
+    background-image: linear-gradient(to right, gray, lightgray, gray);
+}
+
+.BordeTabla{
+    border-image: linear-gradient(to left, black, gray, darkgray, gray, black) 1;
+}
+
+#reset-select{
+    border: none; 
+    color: black; 
+    padding: 5px 8px; 
+    cursor: pointer; 
+    border-radius: 20px;
+    background-image: linear-gradient(to right, lightgray, white, lightgray);
+    border-color: linear-gradient(to right, darkgray, black, darkgray);
+    border-style: ridge;
+}
+
+#reset-select:hover{
+    background-image: linear-gradient(to right, gray, lightgray, gray);
+    border-color: black;
+}
+
+#files{
+    border: none; 
+    color: black; 
+    padding: 5px 8px; 
+    cursor: pointer; 
+    border-radius: 20px;
+    background-image: linear-gradient(to right, lightgray, white, lightgray);
+    border-color: linear-gradient(to right, darkgray, black, darkgray);
+    border-style: ridge;
+}
+
+#files:hover{
+    background-image: linear-gradient(to right, gray, lightgray, gray);
+    border-color: black;
+}
+
+#submit{
+    border: none; 
+    color: black; 
+    padding: 5px 8px; 
+    cursor: pointer; 
+    border-radius: 20px;
+    background-image: linear-gradient(to right, lightgray, white, lightgray);
+    border-color: linear-gradient(to right, darkgray, black, darkgray);
+    border-style: ridge;
+}
+
+#submit:hover{
+    background-image: linear-gradient(to right, gray, lightgray, gray);
+    border-color: black;
+}
